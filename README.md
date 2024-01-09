@@ -2,12 +2,12 @@ sporadically over the last year I've been working on hacking my tp-link smart li
 
 first I found a library (python-kasa) that somewhat worked but was extremely unstable and borderline impossible to debug. I won't go too far into why, but in short: asyncio. also this was a while ago and before I started writing documentation, so I don't remember it too well
 
-later the library maintainer informed me that this was a fork of an older library - pyHS100 - unmangled by a half-baked attempt at asynchrony. this library consistently worked, but was slow, much slower than the proprietary app for the bulb. I reasoned that my PC is no less capable than my iPhone, so I set about fixing it
+later the library maintainer informed me that this was a fork of an older library - pyHS100 - that had been mangled by a half-baked attempt at asynchronous behaviour. this library consistently worked, but was slow, much slower than the proprietary app for the bulb. I reasoned that my PC is no less capable than my iPhone, so I set about fixing it
 
-so, in iterations, I've extracted the core functionality of pyHS100's smartbulb protocol, each iteration getting closer and closer to the minimum code I need to control the light, and a better understanding of what's going on. I eventually discovered that the inefficiency was largely a result of reconnecting for every single request, so if you just keep the socket open and send requests to it, it becomes significantly faster
+so, in iterations, I've extracted the core functionality of pyHS100's smartbulb protocol, each iteration getting closer and closer to the minimum code I need to control the light, and a better understanding of what's going on. I eventually discovered that the inefficiency was largely a result of reconnecting for every single request, so if you just keep the socket connected and send requests to it, it becomes significantly faster
 
 in this process, I've come to understand the core functionality:
-	you create a request in the format of a dictionary
+	you create a request in a json format
 	i.e. 
 	{'smartlife.iot.smartbulb.lightingservice':{<type of request>:{<light_attribute>:<value>}}}
 	where:
@@ -39,11 +39,11 @@ I haven't tested how much time this saves, if any at all, but I suspect that it 
 if it is slower, I'd like to test the average of how many requests it takes for it to catch up
 
 ESP32:
-after I'd understood all this and rewritten it a few dozen times, I decided I wanted to run it from an esp device. because python is my main language and I'm too lazy to learn more than the basics of C, I chose to run it on micropython
+after I'd understood all this and rewritten it a few dozen times, I decided I wanted to run it from an esp device. because python is my main language, I chose to run it on micropython
 
-after a huge amount of hassle with serial port interpreters (I literally installed 5 of them) that just did not work, reddit user u/mu__rray - absolute hero of the year - suggested I use pyserial in a specific way (rts and dtr turned off) that either wasn't possible or didn't work with the other serials. this worked ... barely. it's glitchy but I could get enough access to the python REPL to connect the thing to the internet and activate webrepl
+after a huge amount of hassle with serial port interpreters (I installed 5 of them) that just did not work, reddit user u/mu__rray - absolute hero of the year - suggested I use pyserial in a specific way (rts and dtr turned off) that either wasn't possible or didn't work with the other serials. this worked ... barely. it's glitchy but I could get enough access to the python REPL to connect the thing to the internet and activate webrepl
 
-anyway, back to light control. I looked into socket access with micropython and it's slightly different in a completely unnecessary - and I'd argue extremely stupid - way to normal python, but not very complicated in that. so I reimplemented my light control code with this micropython module. it didn't work. and then in a slightly different way. it didn't work. and then in a slightly different way. it didn't work. I went on with this a fair bit, had no luck, then moved house and lost interest for about half a year, which takes me to now, where I tried again with the ol' throwing everything at the wall technique. I set up a for loop to run 10 times with 4 different varieties of code. strangely enough, the first code to work was exactly the code I'd tried 6 months ago, now working. so I set up a simple button for my esp32 and now I can turn the light on and off with the mere click of a switch. how futuristic
+anyway, back to light control. I looked into socket access with micropython and it's slightly different to normal python, but not very complicated in that. so I reimplemented my light control code with this micropython module. it didn't work. and then in a slightly different way. it didn't work. and then in a slightly different way. it didn't work. I went on with this a fair bit, had no luck, then moved house and lost interest for about half a year, which takes me to now, where I tried again with what I call my throwing everything at the wall technique. I set up a for loop to run 10 times with 4 different varieties of code. strangely enough, the first code to work was exactly the code I'd tried 6 months ago, now working. so I set up a simple button for my esp32 and now I can turn the light on and off with the mere click of a switch. how futuristic
 
 [1] - my guess would be that "mode" has some relation to bulb set-up when it runs a temporary wifi network you connect your phone to so the app can connect the device to your wifi, and I flat out don't care what err_code is, but it's probably the code of whatever error it had last
 

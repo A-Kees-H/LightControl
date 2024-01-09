@@ -1,0 +1,31 @@
+progress report
+
+01/02/23
+
+wrote the code for receiving light state on the esp
+esp can now read state from the bulb
+
+discovered that hylight had a major bug because it wasn't receiving the data from the port after sending updates, which led to a build-up of data in the socket. now know that data always has to be read from the socket after an update
+
+researched and implemented interrupt code that prevents "bouncing" using machine.Timer.
+more info in knowledge
+
+made it so that you can reconnect to a different IP simply by running the bulb.connect method with the parameter IP=<some_ip>
+
+discovered that machine.disable_irq is not useful for quickly stopping interrupts on a pin
+
+wrote a method of receiving on_off data that doesn't require the decryption algorithm (good for memory usage, as decrypt uses a list). the code checks if the byte in position 68 (64 if the data is sliced after position 4 as it is in hylight.py) is equal to 201. if it is 201, then the light is off, otherwise the light is on. this works because the byte streams for when you query an "on" or "off" bulb are the same up to position 67, but different afterwards
+when on:
+{'smartlife.iot.smartbulb.lightingservice': {'get_light_state': {'on_off': 1, 'hue': 80, 'saturation': 92, 'color_temp': 1, 'brightness': 255, 'mode': 'normal', 'err_code': 0}}}
+when off:
+{'smartlife.iot.smartbulb.lightingservice': {'get_light_state': {'dft_on_state': {'hue': 80, 'saturation': 92, 'color_temp': 1, 'brightness': 255, 'mode': 'normal'}, 'on_off': 0, 'err_code': 0}}}
+presumably 201 is the byte version of "d"
+
+now at the point where the button consistently turns the light on and off
+
+succeeded in powering the esp with the nokia battery. must use 3.3v pin, rather than 5v pin
+
+once I set the button up to take its current from pin 14 instead of the (occupied) 3.3v pin, the button worked and I was able to switch the light on and off using the esp32 connected to a battery
+
+daily conclusions:
+	in terms of what more can be done with this project, there isn't a huge amount, but we can set up sensors to control the light. we can also look further into recharging the battery and making cases for the final device
